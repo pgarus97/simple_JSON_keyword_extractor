@@ -1,3 +1,4 @@
+import os
 import sys
 
 from keybert import KeyBERT
@@ -102,13 +103,21 @@ def messages_to_txt_pd(path):
               "r") as read_file:
         jsondata = json.loads(read_file.read())
 
+        #prepare filename
+        filefullname = path.split('\\')
+        filename = filefullname[-1]
+        filename = filename.replace('.json','')
+
         # gets datagram
         pandanorm = json_normalize(jsondata['messages'])
 
         # get only specific rows
         text_subtype = pandanorm[["text", "subtype"]]
-        print(text_subtype)
-        print(pandanorm[pd.isna(pandanorm['subtype'])])
+        messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
+
+        #save to file
+        messageframe.to_csv('messagetext_dataset/'+filename+'.txt', sep='\t', index=False, header=False)
+
 
 def messages_to_txt_glom(path):
     with open(path,
@@ -141,7 +150,15 @@ def main(count, attribute, path):
         keywords = kw_model.extract_keywords(data, keyphrase_ngram_range=(1, 2), stop_words=None)
         print(keywords)
 
-
 if __name__ == '__main__':
-    messages_to_txt_pd(sys.argv[1])
+
+    dataset_path = sys.argv[1]
+    #create directory for txt files
+    if not os.path.exists('messagetext_dataset'):
+        os.mkdir('messagetext_dataset')
+
+    #iterate through all json files in dataset
+    for filename in os.listdir(dataset_path):
+        if filename.endswith(".json"):
+            messages_to_txt_pd(dataset_path+filename)
 
