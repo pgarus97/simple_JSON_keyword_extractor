@@ -70,8 +70,13 @@ def pandatest(count,attribute, path):
         print(text_subtype)
 
         #gets specific value as condition
-        #print(pandanorm.loc[pandanorm['subtype'] == 'channel_join'])
-        #print(pandanorm)
+        print(pandanorm.loc[pandanorm['subtype'] == 'channel_join'])
+
+        #gets specific value as condition + count
+        print(len(pandanorm.loc[pandanorm['subtype'] == 'channel_join']))
+
+        # gets all texts without specified subtype
+        print(text_subtype[pd.isna(text_subtype['subtype'])])
 
         #gets all messages via glom
         glomdata = glom(jsondata, ('messages',['text']))
@@ -79,12 +84,46 @@ def pandatest(count,attribute, path):
         #goes over datalist and removes elements with given string via glom
         glomdata[:] = [x for x in glomdata if "> has joined the channel" not in x]
 
-        #count messages
+        #count messages via glom
         print(len(glomdata))
 
         #clean data from uninteded characters etc.
         for i,x in enumerate(glomdata):
             glomdata[i] = x.replace("\n"," ").replace("\\xa0", " ")
+        print(glomdata)
+
+def messages_to_txt_pd(path):
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+    pd.set_option('display.max_colwidth', -1)
+
+    with open(path,
+              "r") as read_file:
+        jsondata = json.loads(read_file.read())
+
+        # gets datagram
+        pandanorm = json_normalize(jsondata['messages'])
+
+        # get only specific rows
+        text_subtype = pandanorm[["text", "subtype"]]
+        print(text_subtype)
+        print(pandanorm[pd.isna(pandanorm['subtype'])])
+
+def messages_to_txt_glom(path):
+    with open(path,
+              "r") as read_file:
+        jsondata = json.loads(read_file.read())
+
+        # gets all messages via glom
+        glomdata = glom(jsondata, ('messages', ['text']))
+
+        # goes over datalist and removes elements with given string via glom
+        glomdata[:] = [x for x in glomdata if "> has joined the channel" not in x]
+
+        # clean data from uninteded characters etc.
+        for i, x in enumerate(glomdata):
+            glomdata[i] = x.replace("\n", " ").replace("\\xa0", " ")
         print(glomdata)
 
 # main function
@@ -104,5 +143,5 @@ def main(count, attribute, path):
 
 
 if __name__ == '__main__':
-    pandatest(sys.argv[1], sys.argv[2], sys.argv[3])
+    messages_to_txt_pd(sys.argv[1])
 
