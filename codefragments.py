@@ -154,8 +154,8 @@ if __name__ == '__main__':
 
     dataset_path = sys.argv[1]
     #create directory for txt files
-    if not os.path.exists('messagetext_dataset'):
-        os.mkdir('messagetext_dataset')
+    if not os.path.exists('/datasets/messagetext_dataset'):
+        os.mkdir('datasets/messagetext_dataset')
 
     #iterate through all json files in dataset
     for filename in os.listdir(dataset_path):
