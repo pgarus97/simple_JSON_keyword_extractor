@@ -121,11 +121,14 @@ if __name__ == '__main__':
     for filename in os.listdir(dataset_path):
         if filename.endswith(".json"):
             dataframe = getDataFrame(dataset_path+filename)
-            print("Processing main dataframe of: " + filename)
-            print_dataframe_csv(dataframe, "datasets/mainframe_dataset/", filename.replace('.json', ''))
-            print("Processing text messages of: " + filename)
-            messages_to_txt(dataframe, "datasets/messagetext_dataset/", filename.replace('.json', ''))
-            print("Processing meta information of: " + filename)
-            extract_information(dataframe, "datasets/information_dataset/", filename.replace('.json', ''), kw_model)
+            if not os.path.exists('datasets/mainframe_dataset/'+filename.replace('.json', '.csv')):
+                print("Processing main dataframe of: " + filename)
+                print_dataframe_csv(dataframe, "datasets/mainframe_dataset/", filename.replace('.json', ''))
+            if not os.path.exists('datasets/messagetext_dataset/'+filename.replace('.json', '.txt')):
+                print("Processing text messages of: " + filename)
+                messages_to_txt(dataframe, "datasets/messagetext_dataset/", filename.replace('.json', ''))
+            if not os.path.exists('datasets/information_dataset/' + filename):
+                print("Processing meta information of: " + filename)
+                extract_information(dataframe, "datasets/information_dataset/", filename.replace('.json', ''), kw_model)
 
 
