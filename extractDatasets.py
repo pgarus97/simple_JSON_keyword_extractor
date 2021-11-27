@@ -53,25 +53,27 @@ def messages_to_txt(dataframe, save_path, filename):
     messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
     messageframe.to_csv(save_path + filename + '.txt', sep='\t', index=False, header=False)
 
-def extract_information(dataframe, save_path, filename):
+def extract_information(dataframe, save_path, filename, kw_model):
     dictframe = dataframe.to_dict(orient='records')
-
+    print("dataframe methods")
     count_channeljoin = len(dataframe.loc[dataframe['subtype'] == 'channel_join'])
     count_channelpurpose = len(dataframe.loc[dataframe['subtype'] == 'channel_purpose'])
     count_messages = len(dataframe[pd.isna(dataframe['subtype'])])
     count_active_user = len(dataframe['user'].unique())
-    count_team = len(dataframe['team'].dropna().unique())
+    #count_team = len(dataframe['team'].dropna().unique())
     most_active_user = dataframe['user'].value_counts().idxmax()
-    count_reactions = len(dataframe['reactions'].dropna())
+    #count_reactions = len(dataframe['reactions'].dropna())
+    print("iterate methods")
     count_emoji = count_keys('type','emoji',dictframe)
     count_link = count_keys('type','link',dictframe)
     count_mentions = count_keys('type','user', dictframe)
-
+    print("start reading")
     with open("datasets/messagetext_dataset/"+filename+".txt",
-              "r") as txt_file:
+              "r", encoding="utf8") as txt_file:
         messagetxt = txt_file.read()
 
-    kw_model = KeyBERT()
+    print("end reading")
+
     print("Processing keywords of: " + filename)
     keywords = kw_model.extract_keywords(messagetxt, keyphrase_ngram_range=(1, 1), stop_words=None)
     print("Processing keypairs of: " + filename)
@@ -84,9 +86,9 @@ def extract_information(dataframe, save_path, filename):
         "count_channelpurpose" : count_channelpurpose,
         "count_messages" : count_messages,
         "count_active_user" : count_active_user,
-        "count_team" : count_team,
+        #"count_team" : count_team,
         "most_active_user" : most_active_user,
-        "count_reactions" : count_reactions,
+        #"count_reactions" : count_reactions,
         "count_emoji" : count_emoji,
         "count_link" : count_link,
         "count_mentions" :count_mentions,
@@ -101,6 +103,9 @@ if __name__ == '__main__':
 
     dataset_path = sys.argv[1]
     #create directory for txt files
+    if not os.path.exists('datasets'):
+        os.mkdir('datasets')
+
     if not os.path.exists('datasets/mainframe_dataset'):
         os.mkdir('datasets/mainframe_dataset')
 
@@ -109,6 +114,8 @@ if __name__ == '__main__':
 
     if not os.path.exists('datasets/information_dataset'):
         os.mkdir('datasets/information_dataset')
+
+    kw_model = KeyBERT()
 
     #iterate through all json files in dataset
     for filename in os.listdir(dataset_path):
@@ -119,6 +126,6 @@ if __name__ == '__main__':
             print("Processing text messages of: " + filename)
             messages_to_txt(dataframe, "datasets/messagetext_dataset/", filename.replace('.json', ''))
             print("Processing meta information of: " + filename)
-            extract_information(dataframe, "datasets/information_dataset/", filename.replace('.json', ''))
+            extract_information(dataframe, "datasets/information_dataset/", filename.replace('.json', ''), kw_model)
 
 
