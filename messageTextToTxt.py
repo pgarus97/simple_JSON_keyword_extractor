@@ -99,10 +99,34 @@ def extract_information(dataframe, save_path, filename):
     with open(save_path+filename+".json", "w") as out:
         json.dump(info, out, indent=2)
 
+def get_emotelist(obj):
+
+    # iterate arrays
+    if isinstance(obj, list):
+        for item in obj:
+            if json.dumps(item).startswith("{\"elements\": [{") and not \
+                    json.dumps(item).startswith("{\"elements\": [{\"elements\": [{"):
+                if 'emoji' in json.dumps(item):
+                    emotedata = json_normalize(item['elements'])
+
+                    # in case .json is needed
+                    with open("test.json", "a") as out:
+                        json.dump(emotedata.to_dict(orient='records'), out, indent=2)
+
+            get_emotelist(item)
+
+    # iterate objects
+    elif isinstance(obj, dict):
+        for key in obj:
+             get_emotelist(obj[key])
+
+
 def test():
     with open("C:\\Users\\phili\\Desktop\\pp21-hack-the-crisis\\dataset\\mentors_healthcare.json",
               "r") as read_file:
         jsondata = json.loads(read_file.read())
+
+    get_emotelist(jsondata)
 
 
 if __name__ == '__main__':
