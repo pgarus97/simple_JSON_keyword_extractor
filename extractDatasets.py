@@ -7,6 +7,23 @@ from pandas import json_normalize
 import json
 import logging
 
+def get_emoji_txt(save_path, filename, obj):
+
+    # iterate arrays
+    if isinstance(obj, list):
+        for item in obj:
+            get_emoji_txt(item)
+    # iterate objects
+    elif isinstance(obj, dict):
+        for key in obj:
+
+            if key == 'type':
+                if 'emoji' in str(obj[key]):
+                    with open(save_path + filename + ".txt", "a+") as out:
+                        out.write(obj['name'] + '\n')
+
+            get_emoji_txt(obj[key])
+
 
 def get_emotelist(obj, save_path, filename):
 
@@ -27,6 +44,7 @@ def get_emotelist(obj, save_path, filename):
     elif isinstance(obj, dict):
         for key in obj:
             get_emotelist(obj[key], save_path, filename)
+
 
 
 def count_keys(selected_key, val, obj):
@@ -76,6 +94,23 @@ def messages_to_txt(dataframe, save_path, filename):
     text_subtype = dataframe[["text", "subtype"]]
     messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
     messageframe.to_csv(save_path + filename + '.txt', sep='\t', index=False, header=False)
+
+
+def get_emoji_txt(save_path, filename, obj):
+    # iterate arrays
+    if isinstance(obj, list):
+        for item in obj:
+            get_emoji_txt(save_path,filename,item)
+    # iterate objects
+    elif isinstance(obj, dict):
+        for key in obj:
+
+            if key == 'type':
+                if 'emoji' in str(obj[key]):
+                    with open(save_path + filename +".txt", "a+") as out:
+                        out.write(obj['name'] + '\n')
+
+            get_emoji_txt(save_path, filename, obj[key])
 
 
 def extract_information(dataframe, save_path, filename, kw_model):
@@ -148,6 +183,9 @@ if __name__ == '__main__':
     if not os.path.exists('datasets/emojitext_dataset'):
         os.mkdir('datasets/emojitext_dataset')
 
+    if not os.path.exists('datasets/emoji_dataset'):
+        os.mkdir('datasets/emoji_dataset')
+
     #iterate through all json files in dataset
     for filename in os.listdir(dataset_path):
         if filename.endswith(".json"):
@@ -170,5 +208,7 @@ if __name__ == '__main__':
             if not os.path.exists('datasets/emojitext_dataset/' + filename):
                 logging.info("Processing emote-text occurences of: " + filename)
                 get_emotelist(jsondata, "datasets/emojitext_dataset/", filename.replace('.json', ''))
-
+            if not os.path.exists('datasets/emoji_dataset/' + filename):
+                logging.info("Processing emote occurences of: " + filename)
+                get_emoji_txt("datasets/emoji_dataset/", filename.replace('.json', ''), jsondata)
 

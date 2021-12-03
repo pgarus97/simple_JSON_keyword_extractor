@@ -5,6 +5,7 @@ import pandas as pd
 from keybert import KeyBERT
 from pandas import json_normalize
 import json
+import subprocess
 from collections import Counter
 
 
@@ -99,6 +100,9 @@ def extract_information(dataframe, save_path, filename):
     with open(save_path+filename+".json", "w") as out:
         json.dump(info, out, indent=2)
 
+
+
+
 def get_emotelist(obj):
 
     # iterate arrays
@@ -107,11 +111,14 @@ def get_emotelist(obj):
             if json.dumps(item).startswith("{\"elements\": [{") and not \
                     json.dumps(item).startswith("{\"elements\": [{\"elements\": [{"):
                 if 'emoji' in json.dumps(item):
+                    print(item['elements'])
                     emotedata = json_normalize(item['elements'])
-
+                    testdata = emotedata.loc[emotedata['type'] == 'emoji']
+                    print(testdata['name'])
                     # in case .json is needed
-                    with open("test.json", "a") as out:
-                        json.dump(emotedata.to_dict(orient='records'), out, indent=2)
+                    #with open("test.json", "a") as out:
+                        #json.dump(emotedata.to_dict(orient='records'), out, indent=2)
+                    #print(emotedata)
 
             get_emotelist(item)
 
@@ -121,16 +128,66 @@ def get_emotelist(obj):
              get_emotelist(obj[key])
 
 
+def get_emoji_txt(obj):
+
+    # iterate arrays
+    if isinstance(obj, list):
+        for item in obj:
+            get_emoji_txt(item)
+    # iterate objects
+    elif isinstance(obj, dict):
+        for key in obj:
+
+            if key == 'type':
+                if 'emoji' in str(obj[key]):
+                    with open("resulttest.txt", "a+") as out:
+                        print("write")
+                        out.write(obj['name'] + '\n')
+
+            get_emoji_txt(obj[key])
+
+def iterate_projects():
+    for filename in os.listdir("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\emoji_dataset\\"):
+        if filename.endswith(".txt") and not filename[0].isdigit():
+
+            with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\emoji_dataset\\" + filename,
+                      "r", encoding='utf-8') as read_file:
+                            with open("general_emoji.txt", "a+", encoding='utf-8') as out:
+                                print("write")
+                                out.write(read_file.read() +'\n')
+
+
+def join_dataframes():
+
+    frames = [pd.read_csv("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\mainframe_dataset\\"+f, index_col=0) for f in os.listdir("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\mainframe_dataset\\")]
+    result = pd.concat(frames)
+    print(result)
+    result.to_json('test.json', orient='split')
+
+
+    #for filename in os.listdir("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\mainframe_dataset\\"):
+       # if filename.endswith(".csv") and filename.startswith("1"):
+
+            #with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\mainframe_dataset\\" + filename,
+               #       "r") as read_file:
+               # jsondata = json.loads(read_file.read())
+
+           # dataframe = json_normalize(jsondata['messages'])
+
+
+
 def test():
-    with open("C:\\Users\\phili\\Desktop\\pp21-hack-the-crisis\\dataset\\mentors_healthcare.json",
+    with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\test.json",
               "r") as read_file:
         jsondata = json.loads(read_file.read())
 
-    get_emotelist(jsondata)
+    #get_emotelist(jsondata)
+    get_emoji_txt(jsondata)
+
 
 
 if __name__ == '__main__':
 
-    print(test())
+   iterate_projects()
 
 
