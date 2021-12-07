@@ -6,6 +6,7 @@ from keybert import KeyBERT
 from pandas import json_normalize
 import json
 import logging
+import re
 
 
 def get_emotelist(obj, save_path, filename):
@@ -73,6 +74,8 @@ def print_dataframe_csv(dataframe, save_path, filename):
 def messages_to_txt(dataframe, save_path, filename):
     text_subtype = dataframe[["text", "subtype"]]
     messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
+    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub('<.*>', '', x))
+    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub(' :.*?:', '', x))
     messageframe.to_csv(save_path + filename + '.txt', sep='\t', index=False, header=False)
 
 
@@ -94,7 +97,9 @@ def get_emoji_txt(save_path, filename, obj):
 
 
 def iterate_txt(inputpath,outputpath,case):
+    logging.info("Iterate: " + inputpath + "case: " + case)
     if os.path.exists(outputpath):
+        logging.info("Iterated data already exists => will be deleted and redone...")
         os.remove(outputpath)
     for filename in os.listdir(inputpath):
         if case == "project":
@@ -103,7 +108,6 @@ def iterate_txt(inputpath,outputpath,case):
                 with open(inputpath + filename,
                           "r", encoding='utf-8') as read_file:
                                 with open(outputpath, "a+", encoding='utf-8') as out:
-                                    print("write")
                                     out.write(read_file.read() + '\n')
 
         if case == "general":
@@ -111,7 +115,6 @@ def iterate_txt(inputpath,outputpath,case):
                 with open(inputpath + filename,
                           "r", encoding='utf-8') as read_file:
                     with open(outputpath, "a+", encoding='utf-8') as out:
-                        print("write")
                         out.write(read_file.read() + '\n')
 
 def iterate_projects():
@@ -221,7 +224,7 @@ if __name__ == '__main__':
             if not os.path.exists('datasets/emojitext_dataset/' + filename):
                 logging.info("Processing emote-text occurences of: " + filename)
                 get_emotelist(jsondata, "datasets/emojitext_dataset/", filename.replace('.json', ''))
-            if not os.path.exists('datasets/emoji_dataset/' + filename):
+            if not os.path.exists('datasets/emoji_dataset/' + filename.replace('.json', '.txt')):
                 logging.info("Processing emote occurences of: " + filename)
                 get_emoji_txt("datasets/emoji_dataset/", filename.replace('.json', ''), jsondata)
 

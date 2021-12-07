@@ -7,6 +7,7 @@ from pandas import json_normalize
 import json
 import subprocess
 from collections import Counter
+import re
 
 
 
@@ -51,10 +52,7 @@ def print_dataframe_csv(dataframe, save_path, filename):
     dataframe = dataframe.replace(r'\n', ' ', regex=True)
     dataframe.to_csv(save_path + filename + '.csv')
 
-def messages_to_txt(dataframe, save_path, filename):
-    text_subtype = dataframe[["text", "subtype"]]
-    messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
-    messageframe.to_csv(save_path + filename + '.txt', sep='\t', index=False, header=False)
+
 
 def extract_information(dataframe, save_path, filename):
     dictframe = dataframe.to_dict(orient='records')
@@ -228,20 +226,35 @@ def join_dataframes():
 
            # dataframe = json_normalize(jsondata['messages'])
 
+def messages_to_txt(dataframe, save_path, filename):
+    print("inmethod")
+    text_subtype = dataframe[["text", "subtype"]]
+    messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
+    #messageframe['text'] = messageframe['text'].apply(lambda x: x.strip().capitalize())
+    #messageframe['text'] = messageframe['text'].str.replace('as','beef')
+    #messageframe['text'] = re.sub('<.*>', '', messageframe['text'].str)
+    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub('<.*>', '', x))
+    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub( ' :.*?:', '', x))
 
+
+
+    #<@U011B1DRCBG>
+    print(messageframe)
+    messageframe.to_csv(save_path + filename + '.txt', sep='\t', index=False, header=False)
 
 def test():
-    with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\test.json",
+    with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\dataset\\mentors_healthcare.json",
               "r") as read_file:
         jsondata = json.loads(read_file.read())
 
-    #get_emotelist(jsondata)
-    get_emoji_txt(jsondata)
+    dataframe = json_normalize(jsondata['messages'])
 
+
+    messages_to_txt(dataframe, "datasets/", "test")
 
 
 if __name__ == '__main__':
 
-   iterate_projects()
+   test()
 
 
