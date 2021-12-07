@@ -146,15 +146,69 @@ def get_emoji_txt(obj):
 
             get_emoji_txt(obj[key])
 
-def iterate_projects():
-    for filename in os.listdir("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\emoji_dataset\\"):
+def iterate_emojidataset():
+    for filename in os.listdir("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction"
+                               "\\datasets\\emoji_dataset\\"):
         if filename.endswith(".txt") and not filename[0].isdigit():
 
-            with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets\\emoji_dataset\\" + filename,
+            with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets"
+                      "\\emoji_dataset\\" + filename,
                       "r", encoding='utf-8') as read_file:
-                            with open("general_emoji.txt", "a+", encoding='utf-8') as out:
+                            with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction"
+                                      "\\datasets\\project-data\\project_emoji.txt", "a+", encoding='utf-8') as out:
                                 print("write")
-                                out.write(read_file.read() +'\n')
+                                out.write(read_file.read() + '\n')
+
+        if filename.endswith(".txt") and filename[0].isdigit():
+            with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\datasets"
+                      "\\emoji_dataset\\" + filename,
+                      "r", encoding='utf-8') as read_file:
+                with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction"
+                          "\\datasets\\general-data\\general_emoji.txt", "a+", encoding='utf-8') as out:
+                    print("write")
+                    out.write(read_file.read() + '\n')
+
+def iterate_txt(inputpath,outputpath,case):
+    if os.path.exists(outputpath):
+        os.remove(outputpath)
+    for filename in os.listdir(inputpath):
+        if case == "project":
+            if filename.endswith(".txt") and filename[0].isdigit():
+
+                with open(inputpath + filename,
+                          "r", encoding='utf-8') as read_file:
+                                with open(outputpath, "a+", encoding='utf-8') as out:
+                                    print("write")
+                                    out.write(read_file.read() + '\n')
+
+        if case == "general":
+            if filename.endswith(".txt") and not filename[0].isdigit():
+                with open(inputpath + filename,
+                          "r", encoding='utf-8') as read_file:
+                    with open(outputpath, "a+", encoding='utf-8') as out:
+                        print("write")
+                        out.write(read_file.read() + '\n')
+
+def iterate_projects():
+    if not os.path.exists('datasets/project-data'):
+        os.mkdir('datasets/project-data')
+
+    if not os.path.exists('datasets/general-data'):
+        os.mkdir('datasets/general-data')
+
+    #get emoji data
+    #get messagedataset
+    iterate_txt("datasets\\messagetext_dataset\\","datasets\\project-data\\project_messagetext.txt","project")
+    iterate_txt("datasets\\messagetext_dataset\\","datasets\\general-data\\general_messagetext.txt","general")
+    iterate_txt("datasets\\emoji_dataset\\","datasets\\project-data\\project_emoji.txt","project")
+    iterate_txt("datasets\\emoji_dataset\\","datasets\\general-data\\general_emoji.txt","general")
+
+
+
+
+
+
+
 
 
 def join_dataframes():
