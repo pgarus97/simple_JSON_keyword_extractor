@@ -75,7 +75,7 @@ def messages_to_txt(dataframe, save_path, filename):
     text_subtype = dataframe[["text", "subtype"]]
     messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
     messageframe['text'] = messageframe['text'].apply(lambda x: re.sub('<.*>', '', x))
-    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub(' :.*?:', '', x))
+    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub('(?<=:)\\S*?(?=:)', '', x))
     messageframe.to_csv(save_path + filename + '.txt', sep='\t', index=False, header=False)
 
 
