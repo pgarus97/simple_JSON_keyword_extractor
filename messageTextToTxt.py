@@ -1,12 +1,8 @@
 import os
-import sys
-
 import pandas as pd
 from keybert import KeyBERT
 from pandas import json_normalize
 import json
-import subprocess
-from collections import Counter
 import re
 
 
@@ -187,6 +183,49 @@ def iterate_txt(inputpath,outputpath,case):
                         print("write")
                         out.write(read_file.read() + '\n')
 
+
+def iterate_info(inputpath,outputpath,case):
+    if os.path.exists(outputpath):
+        os.remove(outputpath)
+    iteratedict = {
+        "count_channeljoin": 0,
+        "count_channelpurpose": 0,
+        "count_messages": 0,
+        "count_active_user": 0,
+        "count_emoji": 0,
+        "count_link": 0,
+        "count_mentions": 0,
+    }
+    for filename in os.listdir(inputpath):
+        if case == "project":
+            if filename.endswith(".json") and filename[0].isdigit():
+                with open(inputpath + filename,
+                          "r", encoding='utf-8') as read_file:
+                    tempDict = json.load(read_file)
+                    iteratedict['count_channeljoin'] += tempDict['count_channeljoin']
+                    iteratedict['count_channelpurpose'] += tempDict['count_channelpurpose']
+                    iteratedict['count_messages'] += tempDict['count_messages']
+                    iteratedict['count_active_user'] += tempDict['count_active_user']
+                    iteratedict['count_emoji'] += tempDict['count_emoji']
+                    iteratedict['count_link'] += tempDict['count_link']
+                    iteratedict['count_mentions'] += tempDict['count_mentions']
+
+        if case == "general":
+            if filename.endswith(".json") and not filename[0].isdigit():
+                with open(inputpath + filename,
+                          "r", encoding='utf-8') as read_file:
+                    tempDict = json.load(read_file)
+                    iteratedict['count_channeljoin'] += tempDict['count_channeljoin']
+                    iteratedict['count_channelpurpose'] += tempDict['count_channelpurpose']
+                    iteratedict['count_messages'] += tempDict['count_messages']
+                    iteratedict['count_active_user'] += tempDict['count_active_user']
+                    iteratedict['count_emoji'] += tempDict['count_emoji']
+                    iteratedict['count_link'] += tempDict['count_link']
+                    iteratedict['count_mentions'] += tempDict['count_mentions']
+
+    with open(outputpath, "w", encoding='utf-8') as out:
+        json.dump(iteratedict, out, indent=2)
+
 def iterate_projects():
     if not os.path.exists('datasets/project-data'):
         os.mkdir('datasets/project-data')
@@ -200,7 +239,8 @@ def iterate_projects():
     iterate_txt("datasets\\messagetext_dataset\\","datasets\\general-data\\general_messagetext.txt","general")
     iterate_txt("datasets\\emoji_dataset\\","datasets\\project-data\\project_emoji.txt","project")
     iterate_txt("datasets\\emoji_dataset\\","datasets\\general-data\\general_emoji.txt","general")
-
+    iterate_info("datasets\\information_dataset\\","datasets\\general-data\\general_information.txt","general")
+    iterate_info("datasets\\information_dataset\\","datasets\\project-data\\project_information.txt","project")
 
 
 
@@ -250,11 +290,10 @@ def test():
     dataframe = json_normalize(jsondata['messages'])
 
 
-    messages_to_txt(dataframe, "datasets/", "test")
 
 
 if __name__ == '__main__':
 
-   test()
+   iterate_projects()
 
 
