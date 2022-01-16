@@ -283,17 +283,56 @@ def messages_to_txt(dataframe, save_path, filename):
     messageframe.to_csv(save_path + filename + '.txt', sep='\t', index=False, header=False)
 
 def test():
-    with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\dataset\\mentors_healthcare.json",
+    with open("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\dataset\\5_391_centralize_tracking_inspection.json",
               "r") as read_file:
         jsondata = json.loads(read_file.read())
 
     dataframe = json_normalize(jsondata['messages'])
 
+    get_emoticon_txt("C:\\Users\\phili\\Desktop\\Praxisproject\\pp21-hack-the-crisis\\DataExtraction\\","test", dataframe)
 
 
+def get_emoticon_txt(save_path, filename, dataframe):
+    text_subtype = dataframe[["text", "subtype"]]
+    messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
+
+    with open("convertEmoticons.txt", 'r') as file:
+        for line in file:
+            emoticon = line.split()
+            print(emoticon)
+            emoticon_count = messageframe['text'].str.count(emoticon[0]).sum()
+            print(emoticon_count)
+            if(emoticon_count.item() > 0):
+                with open(save_path + filename + ".txt", "a+") as out:
+                    out.write(emoticon[0].replace("\\","") + ':' + str(emoticon_count.item()) + "(" + emoticon[1] +")"+'\n')
 
 if __name__ == '__main__':
+    kw_model = KeyBERT()
 
-   iterate_projects()
+    with open("datasets/project-data/project_messagetext.txt",
+              "r", encoding="utf8") as txt_file:
+        messagetxt = txt_file.read()
 
+    keywords = kw_model.extract_keywords(messagetxt, keyphrase_ngram_range=(1, 1), stop_words=None)
+    keypairs = kw_model.extract_keywords(messagetxt, keyphrase_ngram_range=(1, 2), stop_words=None)
 
+    info = {
+        "keywords": keywords,
+        "keypairs": keypairs
+    }
+    with open("datasets/project-data/project_keywords.txt", "w") as out:
+        json.dump(info, out, indent=2)
+
+    with open("datasets/general-data/general_messagetext.txt",
+              "r", encoding="utf8") as txt_file:
+        messagetxt2 = txt_file.read()
+
+    keywords = kw_model.extract_keywords(messagetxt2, keyphrase_ngram_range=(1, 1), stop_words=None)
+    keypairs = kw_model.extract_keywords(messagetxt2, keyphrase_ngram_range=(1, 2), stop_words=None)
+
+    info2 = {
+        "keywords": keywords,
+        "keypairs": keypairs
+    }
+    with open("datasets/general-data/general_keywords.txt", "w") as out:
+        json.dump(info2, out, indent=2)

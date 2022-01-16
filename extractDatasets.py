@@ -177,6 +177,45 @@ def iterate_projects():
     iterate_info("datasets\\information_dataset\\", "datasets\\general-data\\general_information.txt", "general")
     iterate_info("datasets\\information_dataset\\", "datasets\\project-data\\project_information.txt", "project")
 
+def get_emoticon_txt(save_path, filename, dataframe):
+    text_subtype = dataframe[["text", "subtype"]]
+    messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
+    with open("convertEmoticons.txt", 'r') as file:
+        for line in file:
+            emoticon = line.split()
+            emoticon_count = messageframe['text'].str.count(emoticon[0]).sum()
+            if(emoticon_count.item() > 0):
+                with open(save_path + filename + ".txt", "a+") as out:
+                    out.write(emoticon[0].replace("\\","") + ' : ' + str(emoticon_count.item()) + " (" + emoticon[1] +") "+'\n')
+
+def generate_full_keywords(kw_model):
+    with open("datasets/project-data/project_messagetext.txt",
+              "r", encoding="utf8") as txt_file:
+        messagetxt = txt_file.read()
+
+    keywords = kw_model.extract_keywords(messagetxt, keyphrase_ngram_range=(1, 1), stop_words=None)
+    keypairs = kw_model.extract_keywords(messagetxt, keyphrase_ngram_range=(1, 2), stop_words=None)
+
+    info = {
+        "keywords": keywords,
+        "keypairs": keypairs
+    }
+    with open("datasets/project-data/project_keywords.txt", "w") as out:
+        json.dump(info, out, indent=2)
+
+    with open("datasets/general-data/general_messagetext.txt",
+              "r", encoding="utf8") as txt_file:
+        messagetxt2 = txt_file.read()
+
+    keywords = kw_model.extract_keywords(messagetxt2, keyphrase_ngram_range=(1, 1), stop_words=None)
+    keypairs = kw_model.extract_keywords(messagetxt2, keyphrase_ngram_range=(1, 2), stop_words=None)
+
+    info2 = {
+        "keywords": keywords,
+        "keypairs": keypairs
+    }
+    with open("datasets/general-data/general_keywords.txt", "w") as out:
+        json.dump(info2, out, indent=2)
 
 def extract_information(dataframe, save_path, filename, kw_model):
     dictframe = dataframe.to_dict(orient='records')
@@ -248,6 +287,9 @@ if __name__ == '__main__':
     if not os.path.exists('datasets/emoji_dataset'):
         os.mkdir('datasets/emoji_dataset')
 
+    if not os.path.exists('datasets/emoticon_dataset'):
+        os.mkdir('datasets/emoticon_dataset')
+
     # iterate through all json files in dataset
     for filename in os.listdir(dataset_path):
         if filename.endswith(".json"):
@@ -273,6 +315,9 @@ if __name__ == '__main__':
             if not os.path.exists('datasets/emoji_dataset/' + filename.replace('.json', '.txt')):
                 logging.info("Processing emote occurences of: " + filename)
                 get_emoji_txt("datasets/emoji_dataset/", filename.replace('.json', ''), jsondata)
+            if not os.path.exists('datasets/emoticon_dataset/' + filename.replace('.json', '.txt')):
+                logging.info("Processing emoticon occurences of: " + filename)
+                get_emoticon_txt("datasets/emoticon_dataset/", filename.replace('.json', ''), dataframe)
 
     logging.info("Processing project/general info:")
     iterate_projects()
