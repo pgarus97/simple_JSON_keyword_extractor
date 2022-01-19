@@ -306,33 +306,33 @@ def get_emoticon_txt(save_path, filename, dataframe):
                 with open(save_path + filename + ".txt", "a+") as out:
                     out.write(emoticon[0].replace("\\","") + ':' + str(emoticon_count.item()) + "(" + emoticon[1] +")"+'\n')
 
-if __name__ == '__main__':
-    kw_model = KeyBERT()
 
+def generate_full_emoticons():
     with open("datasets/project-data/project_messagetext.txt",
               "r", encoding="utf8") as txt_file:
         messagetxt = txt_file.read()
 
-    keywords = kw_model.extract_keywords(messagetxt, keyphrase_ngram_range=(1, 1), stop_words=None)
-    keypairs = kw_model.extract_keywords(messagetxt, keyphrase_ngram_range=(1, 2), stop_words=None)
-
-    info = {
-        "keywords": keywords,
-        "keypairs": keypairs
-    }
-    with open("datasets/project-data/project_keywords.txt", "w") as out:
-        json.dump(info, out, indent=2)
+    with open("convertEmoticons2.txt", 'r') as file:
+        for line in file:
+            emoticon = line.split()
+            emoticon_count = messagetxt.count(" "+emoticon[0])
+            if(emoticon_count > 0):
+                with open("datasets/project-data/project_emoticons.txt", "a+") as out:
+                    out.write(emoticon[0].replace("\\","") + ' : ' + str(emoticon_count) + " (" + emoticon[1] +") "+'\n')
 
     with open("datasets/general-data/general_messagetext.txt",
               "r", encoding="utf8") as txt_file:
         messagetxt2 = txt_file.read()
 
-    keywords = kw_model.extract_keywords(messagetxt2, keyphrase_ngram_range=(1, 1), stop_words=None)
-    keypairs = kw_model.extract_keywords(messagetxt2, keyphrase_ngram_range=(1, 2), stop_words=None)
+    with open("convertEmoticons2.txt", 'r') as file:
+        for line in file:
+            emoticon2 = line.split()
+            emoticon_count2 = messagetxt2.count(" "+emoticon2[0])
+            print(emoticon2[0] + str(emoticon_count2))
+            if(emoticon_count2 > 0):
+                with open("datasets/general-data/general_emoticons.txt", "a+") as out:
+                    out.write(emoticon2[0].replace("\\","") + ' : ' + str(emoticon_count2) + " (" + emoticon2[1] +") "+'\n')
 
-    info2 = {
-        "keywords": keywords,
-        "keypairs": keypairs
-    }
-    with open("datasets/general-data/general_keywords.txt", "w") as out:
-        json.dump(info2, out, indent=2)
+if __name__ == '__main__':
+
+    generate_full_emoticons()

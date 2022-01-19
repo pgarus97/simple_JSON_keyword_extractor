@@ -160,7 +160,7 @@ def iterate_info(inputpath,outputpath,case):
         json.dump(iteratedict, out, indent=2)
 
 
-def iterate_projects():
+def iterate_projects(kw_model):
     if not os.path.exists('datasets/project-data'):
         os.mkdir('datasets/project-data')
 
@@ -177,16 +177,28 @@ def iterate_projects():
     iterate_info("datasets\\information_dataset\\", "datasets\\general-data\\general_information.txt", "general")
     iterate_info("datasets\\information_dataset\\", "datasets\\project-data\\project_information.txt", "project")
 
+    if not os.path.exists('datasets/project-data/project_emoticons.txt') and \
+            not os.path.exists('datasets/general-data/general_emoticons.txt'):
+        generate_full_emoticons()
+
+    if not os.path.exists('datasets/project-data/project_keywords.txt') and \
+            not os.path.exists('datasets/general-data/general_keywords.txt'):
+        generate_full_keywords(kw_model)
+
+
 def get_emoticon_txt(save_path, filename, dataframe):
     text_subtype = dataframe[["text", "subtype"]]
     messageframe = text_subtype[pd.isna(text_subtype['subtype'])]
+    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub('<.*>', '', x))
+    messageframe['text'] = messageframe['text'].apply(lambda x: re.sub('(?<=:)\\S*?(?=:)', '', x))
     with open("convertEmoticons.txt", 'r') as file:
         for line in file:
             emoticon = line.split()
-            emoticon_count = messageframe['text'].str.count(emoticon[0]).sum()
+            emoticon_count = messageframe['text'].str.count(" "+emoticon[0]).sum()
             if(emoticon_count.item() > 0):
                 with open(save_path + filename + ".txt", "a+") as out:
                     out.write(emoticon[0].replace("\\","") + ' : ' + str(emoticon_count.item()) + " (" + emoticon[1] +") "+'\n')
+
 
 def generate_full_keywords(kw_model):
     with open("datasets/project-data/project_messagetext.txt",
@@ -216,6 +228,34 @@ def generate_full_keywords(kw_model):
     }
     with open("datasets/general-data/general_keywords.txt", "w") as out:
         json.dump(info2, out, indent=2)
+
+
+def generate_full_emoticons():
+    with open("datasets/project-data/project_messagetext.txt",
+              "r", encoding="utf8") as txt_file:
+        messagetxt = txt_file.read()
+
+    with open("convertEmoticons2.txt", 'r') as file:
+        for line in file:
+            emoticon = line.split()
+            emoticon_count = messagetxt.count(" "+emoticon[0])
+            if(emoticon_count > 0):
+                with open("datasets/project-data/project_emoticons.txt", "a+") as out:
+                    out.write(emoticon[0].replace("\\","") + ' : ' + str(emoticon_count) + " (" + emoticon[1] +") "+'\n')
+
+    with open("datasets/general-data/general_messagetext.txt",
+              "r", encoding="utf8") as txt_file:
+        messagetxt2 = txt_file.read()
+
+    with open("convertEmoticons2.txt", 'r') as file:
+        for line in file:
+            emoticon2 = line.split()
+            emoticon_count2 = messagetxt2.count(" "+emoticon2[0])
+            print(emoticon2[0] + str(emoticon_count2))
+            if(emoticon_count2 > 0):
+                with open("datasets/general-data/general_emoticons.txt", "a+") as out:
+                    out.write(emoticon2[0].replace("\\","") + ' : ' + str(emoticon_count2) + " (" + emoticon2[1] +") "+'\n')
+
 
 def extract_information(dataframe, save_path, filename, kw_model):
     dictframe = dataframe.to_dict(orient='records')
@@ -320,4 +360,4 @@ if __name__ == '__main__':
                 get_emoticon_txt("datasets/emoticon_dataset/", filename.replace('.json', ''), dataframe)
 
     logging.info("Processing project/general info:")
-    iterate_projects()
+    iterate_projects(kw_model)
